@@ -7,19 +7,24 @@ output:
 
 
 ## Loading and preprocessing the data
+## Loading and preprocessing the data
 
 
 
+## What is mean total number of steps taken per day?
 ## What is mean total number of steps taken per day?
 
 
 
 ## What is the average daily activity pattern?
+## What is the average daily activity pattern?
 
 
 
 ## Imputing missing values
+## Imputing missing values
 
 
 
+## Are there differences in activity patterns between weekdays and weekends?
 ## Are there differences in activity patterns between weekdays and weekends?
