@@ -4,27 +4,41 @@ output:
   html_document:
     keep_md: true
 ---
+## Introduction
+Analysis of data about personal movement using activity monitoring devices.   
+The device collects dat at 5 minute intervals through out the day.   
+The data consists of two months of data an anonymous individual collected during the months of October and November 2012 and include the number of steps taken in 5 minute interval each day.      
+   
+#### Dataset: Activity monitoring data [52k]   
+     The dataset is stored in a comma-separated-value (CSV) file and there are a total of 17,568 observations in this dataset.   
+*  download: https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip   
+#### Variables of dataset:
+*  steps: Number of steps in a 5 minute interval   
+          (missing values are coded as NA)   
+*  date: The date on wich the measurement was taken   
+          format: YYYY-MM-DD   
+*  interval: Identifier for the 5 minute interval in which measurement was taken   
 
 
-## Loading and preprocessing the data
-## Loading and preprocessing the data
+## 1- Loading and preprocessing the data
+```{r echo=TRUE}
+setwd("C:/COURSERA5")
+# se arquivo não existir, baixá-lo e descompactar
+
+```
+
+## 2- What is mean total number of steps taken per day?
 
 
 
-## What is mean total number of steps taken per day?
-## What is mean total number of steps taken per day?
+## 3- What is the average daily activity pattern?
 
 
 
-## What is the average daily activity pattern?
-## What is the average daily activity pattern?
+## 4- Imputing missing values
 
 
 
-## Imputing missing values
-## Imputing missing values
+## 5- Are there differences in activity patterns between weekdays and weekends?
 
-
-
-## Are there differences in activity patterns between weekdays and weekends?
-## Are there differences in activity patterns between weekdays and weekends?
+Weekends: Sat, Sun. Weekdays: Mon, Tues, Wed, Thurs, Fri.
