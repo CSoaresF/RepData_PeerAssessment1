@@ -5,9 +5,9 @@ author: CSoaresF
 date: Jan 09, 2016
 output: html_document:   
         keep_md: true   
----
+--- 
 ## Analysis of data collected of movement of one individual by activity monitoring device  
-#### Author: CsoaresF   
+#### CsoaresF   
 =========================================  
 ## Introduction
 Analysis of data about personal movement using activity monitoring devices.   
@@ -30,8 +30,10 @@ The data consists of two months of data an anonymous individual collected during
 ## 1- Loading and preprocessing the data   
 ```{r echo = TRUE}
 # libraries
-library(dplyr)
+library(lattice)
 library(ggplot2)
+library(plyr)
+library(dplyr)
 #################
 
 # work directory
@@ -47,6 +49,9 @@ if(!file.exists("activity.csv")) {
 # load spreadsheet to work space
 activity <- read.csv("activity.csv")
 
+# conversion to date
+activity$date <- as.Date(as.character(activity$date), "%Y-%m-%d")
+
 #  view file structure
 str(activity)
 ```
@@ -58,15 +63,17 @@ tot.steps.day <- activity %>%                    # read activity,
   summarise(steps = sum(steps, na.rm=FALSE)) %>% # summarise steps (with NAs),
   arrange(date)                                  # and order by date.
 
-# returns the five first rows
-head(tot.steps.day, 5)
+# view file struture
+str(tot.steps.day)
+# number of days in dataset
+length(tot.steps.day$date)
 
-# quartis of total steps by day (with NAs)
-summary(tot.steps.day$steps)
+# total steps by day (with NAs)
+summary(tot.steps.day)
 ```
 *  The mean is 10,770 steps by day.   
 *  The median is 10,760 steps by day.   
-*  Including the rows with "NAs", mean and medin are very close.   
+*  Ignoring missing values in the data, mean and medin are very close.   
    
 ```{r echo = TRUE}
 # histogram (with NAs)
@@ -85,37 +92,70 @@ print(tot.steps.day$steps)
 ## 3- What is the average daily activity pattern?   
 ```{r echo = TRUE}
 # 
-# time serie with ggplot2
-##########################
-qplot(data=activity, 
-     x=interval,
-     y=steps,
-     geom="line") +
-  labs(title="Time serie of steps by interval of 5 min (Oct/1/2012 -Nov/30/2012)") +
-  labs(x="Interval of 5 min (Oct/1/2012 - Nov/30/2012)") +
-  labs(y="County steps by interval 5 min")
-
+# time series plot (type = "l")
+# interval 5min: x-axis
+# mean of steps taken: y-axis
+mean.steps <- aggregate(steps ~ interval, data = activity, FUN = mean)
+plot(mean.steps, type = "l")
 ```
 #
 ## 4- Imputing missing values   
 ```{r echo = TRUE}
 # 
-# total steps by day without NAs (using dplyr)
+summary(activity)
+summary(tot.steps.day)
+#######################################
+# total steps by day without NAs
 tot.steps.day2 <- activity %>%                  # read activity,
   group_by(date) %>%                            # group by date,
   summarise(steps = sum(steps, na.rm=TRUE)) %>% # summarise steps (without NAs),
   arrange(date)                                 # and order by date.
 
-# quartis of total steps by day (without NAs)
-summary(tot.steps.day2$steps)
+# 
+summary(tot.steps.day2)
+############################ 4444444444
+steps.by.day <- aggregate(steps ~ date, data = activity, sum, na.rm = TRUE)
+############################## 44444444
+# missing values in activity dataset
+missing <- !complete.cases(activity)
+sum(missing == TRUE)
+# 
+activity2 <- activity[missing == TRUE, ]
+steps.by.interval <- aggregate(steps ~ interval, data = activity, mean, na.rm = TRUE)
+activity2[, 1] <- steps.by.interval$step
+# activity3: dataset with missing data filled in 
+activity3 <- rbind(activity[complete.cases(activity), ], activity2)
+summary(activity2)
+summary(activity3)
+#
+# total steps by day with missing data filled in
+steps.by.day3 <- aggregate(steps ~ date, data = activity3, sum)
+hist(steps.by.day3$steps)
+summary(steps.by.day3)
+
 ```
-
-
 #
 ## 5- Are there differences in activity patterns between weekdays and weekends?   
    
-Weekends: Sat, Sun.    
-Weekdays: Mon, Tues, Wed, Thurs, Fri.   
+Weekends: Saturday (sáb), Sunday (dom).    
+Weekdays: Mon (seg), Tues (ter), Wed (qua), Thurs (qui), Fri (sex).   
 ```{r echo = TRUE}
 # 
+activity3$day.week <- weekdays(activity3$date, abbreviate = TRUE)
+head(activity3)
+tail(activity3)
+#
+activity3$day.week[activity3$day.week == "sáb" | activity3$day.week == "dom"] <- "weekend"
+activity3$day.week[activity3$day.week != "weekend"] <- "weekday"
+activity3$day.week <- as.factor(activity3$day.week)
+head(activity3)
+str(activity3)
+#
+# painel plot weekday x weekend
+# interval 5m x-axis
+# mean steps y-axis
+activity4 <- ddply(activity3, .(interval, day.week), summarise, mean.steps = mean(steps))
+summary(activity4)
+#
+xyplot(mean.steps ~ interval | day.week, data = activity4, type = "l", lwd = 2, layout = c(1, 2), ylab = "Number of steps")
 ```

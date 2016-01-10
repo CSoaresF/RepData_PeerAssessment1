@@ -5,9 +5,9 @@ author: CSoaresF
 date: Jan 09, 2016
 output: html_document:   
         keep_md: true   
----
+--- 
 ## Analysis of data collected of movement of one individual by activity monitoring device  
-#### Author: CsoaresF   
+#### CsoaresF   
 =========================================  
 ## Introduction
 Analysis of data about personal movement using activity monitoring devices.   
@@ -31,12 +31,20 @@ The data consists of two months of data an anonymous individual collected during
 
 ```r
 # libraries
+library(lattice)
+library(ggplot2)
+library(plyr)
 library(dplyr)
 ```
 
 ```
 ## 
 ## Attaching package: 'dplyr'
+## 
+## The following objects are masked from 'package:plyr':
+## 
+##     arrange, count, desc, failwith, id, mutate, rename, summarise,
+##     summarize
 ## 
 ## The following objects are masked from 'package:stats':
 ## 
@@ -48,7 +56,6 @@ library(dplyr)
 ```
 
 ```r
-library(ggplot2)
 #################
 
 # work directory
@@ -64,6 +71,9 @@ if(!file.exists("activity.csv")) {
 # load spreadsheet to work space
 activity <- read.csv("activity.csv")
 
+# conversion to date
+activity$date <- as.Date(as.character(activity$date), "%Y-%m-%d")
+
 #  view file structure
 str(activity)
 ```
@@ -71,7 +81,7 @@ str(activity)
 ```
 ## 'data.frame':	17568 obs. of  3 variables:
 ##  $ steps   : int  NA NA NA NA NA NA NA NA NA NA ...
-##  $ date    : Factor w/ 61 levels "2012-10-01","2012-10-02",..: 1 1 1 1 1 1 1 1 1 1 ...
+##  $ date    : Date, format: "2012-10-01" "2012-10-01" ...
 ##  $ interval: int  0 5 10 15 20 25 30 35 40 45 ...
 ```
 ## 2- What is mean total number of steps taken per day?   
@@ -83,41 +93,50 @@ tot.steps.day <- activity %>%                    # read activity,
   summarise(steps = sum(steps, na.rm=FALSE)) %>% # summarise steps (with NAs),
   arrange(date)                                  # and order by date.
 
-# returns the five first rows
-head(tot.steps.day, 5)
+# view file struture
+str(tot.steps.day)
 ```
 
 ```
-## Source: local data frame [5 x 2]
-## 
-##         date steps
-##       (fctr) (int)
-## 1 2012-10-01    NA
-## 2 2012-10-02   126
-## 3 2012-10-03 11352
-## 4 2012-10-04 12116
-## 5 2012-10-05 13294
+## Classes 'tbl_df', 'tbl' and 'data.frame':	61 obs. of  2 variables:
+##  $ date : Date, format: "2012-10-01" "2012-10-02" ...
+##  $ steps: int  NA 126 11352 12116 13294 15420 11015 NA 12811 9900 ...
 ```
 
 ```r
-# quartis of total steps by day (with NAs)
-summary(tot.steps.day$steps)
+# number of days in dataset
+length(tot.steps.day$date)
 ```
 
 ```
-##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max.    NA's 
-##      41    8841   10760   10770   13290   21190       8
+## [1] 61
+```
+
+```r
+# total steps by day (with NAs)
+summary(tot.steps.day)
+```
+
+```
+##       date                steps      
+##  Min.   :2012-10-01   Min.   :   41  
+##  1st Qu.:2012-10-16   1st Qu.: 8841  
+##  Median :2012-10-31   Median :10765  
+##  Mean   :2012-10-31   Mean   :10766  
+##  3rd Qu.:2012-11-15   3rd Qu.:13294  
+##  Max.   :2012-11-30   Max.   :21194  
+##                       NA's   :8
 ```
 *  The mean is 10,770 steps by day.   
 *  The median is 10,760 steps by day.   
-*  Including the rows with "NAs", mean and medin are very close.   
+*  Ignoring missing values in the data, mean and medin are very close.   
    
 
 ```r
 # histogram (with NAs)
 qplot(tot.steps.day$steps, 
       geom = "histogram",
-      binwidth = 0.5) +
+      binwidth = 700) +
   labs(title="Histogram steps by day") +
   labs(x="Quantity steps by day") +
   labs(y="Count days")
@@ -144,19 +163,11 @@ print(tot.steps.day$steps)
 
 ```r
 # 
-# time serie with ggplot2
-##########################
-qplot(data=activity, 
-     x=interval,
-     y=steps,
-     geom="line") +
-  labs(title="Time serie of steps by interval of 5 min (Oct/1/2012 -Nov/30/2012)") +
-  labs(x="Interval of 5 min (Oct/1/2012 - Nov/30/2012)") +
-  labs(y="County steps by interval 5 min")
-```
-
-```
-## Warning: Removed 2 rows containing missing values (geom_path).
+# time series plot (type = "l")
+# interval 5min: x-axis
+# mean of steps taken: y-axis
+mean.steps <- aggregate(steps ~ interval, data = activity, FUN = mean)
+plot(mean.steps, type = "l")
 ```
 
 ![plot of chunk unnamed-chunk-4](figure/unnamed-chunk-4-1.png) 
@@ -165,28 +176,214 @@ qplot(data=activity,
 
 ```r
 # 
-# total steps by day without NAs (using dplyr)
+summary(activity)
+```
+
+```
+##      steps             date               interval     
+##  Min.   :  0.00   Min.   :2012-10-01   Min.   :   0.0  
+##  1st Qu.:  0.00   1st Qu.:2012-10-16   1st Qu.: 588.8  
+##  Median :  0.00   Median :2012-10-31   Median :1177.5  
+##  Mean   : 37.38   Mean   :2012-10-31   Mean   :1177.5  
+##  3rd Qu.: 12.00   3rd Qu.:2012-11-15   3rd Qu.:1766.2  
+##  Max.   :806.00   Max.   :2012-11-30   Max.   :2355.0  
+##  NA's   :2304
+```
+
+```r
+summary(tot.steps.day)
+```
+
+```
+##       date                steps      
+##  Min.   :2012-10-01   Min.   :   41  
+##  1st Qu.:2012-10-16   1st Qu.: 8841  
+##  Median :2012-10-31   Median :10765  
+##  Mean   :2012-10-31   Mean   :10766  
+##  3rd Qu.:2012-11-15   3rd Qu.:13294  
+##  Max.   :2012-11-30   Max.   :21194  
+##                       NA's   :8
+```
+
+```r
+#######################################
+# total steps by day without NAs
 tot.steps.day2 <- activity %>%                  # read activity,
   group_by(date) %>%                            # group by date,
   summarise(steps = sum(steps, na.rm=TRUE)) %>% # summarise steps (without NAs),
   arrange(date)                                 # and order by date.
 
-# quartis of total steps by day (without NAs)
-summary(tot.steps.day2$steps)
+# 
+summary(tot.steps.day2)
 ```
 
 ```
-##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-##       0    6778   10400    9354   12810   21190
+##       date                steps      
+##  Min.   :2012-10-01   Min.   :    0  
+##  1st Qu.:2012-10-16   1st Qu.: 6778  
+##  Median :2012-10-31   Median :10395  
+##  Mean   :2012-10-31   Mean   : 9354  
+##  3rd Qu.:2012-11-15   3rd Qu.:12811  
+##  Max.   :2012-11-30   Max.   :21194
 ```
 
+```r
+############################ 4444444444
+steps.by.day <- aggregate(steps ~ date, data = activity, sum, na.rm = TRUE)
+############################## 44444444
+# missing values in activity dataset
+missing <- !complete.cases(activity)
+sum(missing == TRUE)
+```
 
-#
-## 5- Are there differences in activity patterns between weekdays and weekends?   
-   
-Weekends: Sat, Sun.    
-Weekdays: Mon, Tues, Wed, Thurs, Fri.   
+```
+## [1] 2304
+```
 
 ```r
 # 
+activity2 <- activity[missing == TRUE, ]
+steps.by.interval <- aggregate(steps ~ interval, data = activity, mean, na.rm = TRUE)
+activity2[, 1] <- steps.by.interval$step
+# activity3: dataset with missing data filled in 
+activity3 <- rbind(activity[complete.cases(activity), ], activity2)
+summary(activity2)
 ```
+
+```
+##      steps              date               interval     
+##  Min.   :  0.000   Min.   :2012-10-01   Min.   :   0.0  
+##  1st Qu.:  2.486   1st Qu.:2012-10-26   1st Qu.: 588.8  
+##  Median : 34.113   Median :2012-11-06   Median :1177.5  
+##  Mean   : 37.383   Mean   :2012-11-01   Mean   :1177.5  
+##  3rd Qu.: 52.835   3rd Qu.:2012-11-11   3rd Qu.:1766.2  
+##  Max.   :206.170   Max.   :2012-11-30   Max.   :2355.0
+```
+
+```r
+summary(activity3)
+```
+
+```
+##      steps             date               interval     
+##  Min.   :  0.00   Min.   :2012-10-01   Min.   :   0.0  
+##  1st Qu.:  0.00   1st Qu.:2012-10-16   1st Qu.: 588.8  
+##  Median :  0.00   Median :2012-10-31   Median :1177.5  
+##  Mean   : 37.38   Mean   :2012-10-31   Mean   :1177.5  
+##  3rd Qu.: 27.00   3rd Qu.:2012-11-15   3rd Qu.:1766.2  
+##  Max.   :806.00   Max.   :2012-11-30   Max.   :2355.0
+```
+
+```r
+#
+# total steps by day with missing data filled in
+steps.by.day3 <- aggregate(steps ~ date, data = activity3, sum)
+hist(steps.by.day3$steps)
+```
+
+![plot of chunk unnamed-chunk-5](figure/unnamed-chunk-5-1.png) 
+
+```r
+summary(steps.by.day3)
+```
+
+```
+##       date                steps      
+##  Min.   :2012-10-01   Min.   :   41  
+##  1st Qu.:2012-10-16   1st Qu.: 9819  
+##  Median :2012-10-31   Median :10766  
+##  Mean   :2012-10-31   Mean   :10766  
+##  3rd Qu.:2012-11-15   3rd Qu.:12811  
+##  Max.   :2012-11-30   Max.   :21194
+```
+#
+## 5- Are there differences in activity patterns between weekdays and weekends?   
+   
+Weekends: Saturday (sáb), Sunday (dom).    
+Weekdays: Mon (seg), Tues (ter), Wed (qua), Thurs (qui), Fri (sex).   
+
+```r
+# 
+activity3$day.week <- weekdays(activity3$date, abbreviate = TRUE)
+head(activity3)
+```
+
+```
+##     steps       date interval day.week
+## 289     0 2012-10-02        0      ter
+## 290     0 2012-10-02        5      ter
+## 291     0 2012-10-02       10      ter
+## 292     0 2012-10-02       15      ter
+## 293     0 2012-10-02       20      ter
+## 294     0 2012-10-02       25      ter
+```
+
+```r
+tail(activity3)
+```
+
+```
+##           steps       date interval day.week
+## 17563 2.6037736 2012-11-30     2330      sex
+## 17564 4.6981132 2012-11-30     2335      sex
+## 17565 3.3018868 2012-11-30     2340      sex
+## 17566 0.6415094 2012-11-30     2345      sex
+## 17567 0.2264151 2012-11-30     2350      sex
+## 17568 1.0754717 2012-11-30     2355      sex
+```
+
+```r
+#
+activity3$day.week[activity3$day.week == "sáb" | activity3$day.week == "dom"] <- "weekend"
+activity3$day.week[activity3$day.week != "weekend"] <- "weekday"
+activity3$day.week <- as.factor(activity3$day.week)
+head(activity3)
+```
+
+```
+##     steps       date interval day.week
+## 289     0 2012-10-02        0  weekday
+## 290     0 2012-10-02        5  weekday
+## 291     0 2012-10-02       10  weekday
+## 292     0 2012-10-02       15  weekday
+## 293     0 2012-10-02       20  weekday
+## 294     0 2012-10-02       25  weekday
+```
+
+```r
+str(activity3)
+```
+
+```
+## 'data.frame':	17568 obs. of  4 variables:
+##  $ steps   : num  0 0 0 0 0 0 0 0 0 0 ...
+##  $ date    : Date, format: "2012-10-02" "2012-10-02" ...
+##  $ interval: int  0 5 10 15 20 25 30 35 40 45 ...
+##  $ day.week: Factor w/ 2 levels "weekday","weekend": 1 1 1 1 1 1 1 1 1 1 ...
+```
+
+```r
+#
+# painel plot weekday x weekend
+# interval 5m x-axis
+# mean steps y-axis
+activity4 <- ddply(activity3, .(interval, day.week), summarise, mean.steps = mean(steps))
+summary(activity4)
+```
+
+```
+##     interval         day.week     mean.steps     
+##  Min.   :   0.0   weekday:288   Min.   :  0.000  
+##  1st Qu.: 588.8   weekend:288   1st Qu.:  2.047  
+##  Median :1177.5                 Median : 28.133  
+##  Mean   :1177.5                 Mean   : 38.988  
+##  3rd Qu.:1766.2                 3rd Qu.: 61.263  
+##  Max.   :2355.0                 Max.   :230.378
+```
+
+```r
+#
+xyplot(mean.steps ~ interval | day.week, data = activity4, type = "l", lwd = 2, layout = c(1, 2), ylab = "Number of steps")
+```
+
+![plot of chunk unnamed-chunk-6](figure/unnamed-chunk-6-1.png) 
