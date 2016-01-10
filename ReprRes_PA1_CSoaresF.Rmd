@@ -1,0 +1,121 @@
+---
+title: "Reproducible Research: Peer  Assessment 1"
+subtitle: "Analysis of movement of data collected of one individual by activity monitoring device"
+author: CSoaresF   
+date: Jan 09, 2016
+output: html_document:   
+        keep_md: true   
+---
+## Analysis of data collected of movement of one individual by activity monitoring device  
+#### Author: CsoaresF   
+=========================================  
+## Introduction
+Analysis of data about personal movement using activity monitoring devices.   
+The device collects dat at 5 minute intervals through out the day.   
+The data consists of two months of data an anonymous individual collected during the months of October and November 2012 and include the number of steps taken in 5 minute interval each day.      
+   
+#### Dataset: Activity monitoring data [52k]   
+*  The dataset is stored in a comma-separated-value (CSV) file.   
+*  There are a total of 17,568 observations in this dataset.
+*  url for download: https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip   
+    
+*  Variables of dataset:
+    +  __steps__: Number of steps in a 5 minute interval   
+          (missing values are coded as NA)   
+    +  __date__: The date on wich the measurement was taken   
+          format: YYYY-MM-DD   
+    +  __interval__: Identifier for the 5 minute interval in which measurement was taken   
+
+
+## 1- Loading and preprocessing the data   
+```{r echo = TRUE}
+# libraries
+library(dplyr)
+library(ggplot2)
+#################
+
+# work directory
+setwd("C:/COURSERA5")
+# if file is not exist in work directory, download and unzip
+if(!file.exists("activity.csv")) {
+    file <- "activity.zip"
+    web <- "https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip"
+    download.file(web, file)
+    unzip(file)
+}
+
+# load spreadsheet to work space
+activity <- read.csv("activity.csv")
+
+#  view file structure
+str(activity)
+```
+## 2- What is mean total number of steps taken per day?   
+```{r echo = TRUE}
+# total steps by day (using dplyr)
+tot.steps.day <- activity %>%                    # read activity,
+  group_by(date) %>%                             # group by date,
+  summarise(steps = sum(steps, na.rm=FALSE)) %>% # summarise steps (with NAs),
+  arrange(date)                                  # and order by date.
+
+# returns the five first rows
+head(tot.steps.day, 5)
+
+# quartis of total steps by day (with NAs)
+summary(tot.steps.day$steps)
+```
+*  The mean is 10,770 steps by day.   
+*  The median is 10,760 steps by day.   
+*  Including the rows with "NAs", mean and medin are very close.   
+   
+```{r echo = TRUE}
+# histogram (with NAs)
+qplot(tot.steps.day$steps, 
+      geom = "histogram",
+      binwidth = 700) +
+  labs(title="Histogram steps by day") +
+  labs(x="Quantity steps by day") +
+  labs(y="Count days")
+
+#
+# Quantity of steps per day, one person, for 61 days (Oct/1/2012 - Nov/30/2012).
+print(tot.steps.day$steps)
+```
+
+## 3- What is the average daily activity pattern?   
+```{r echo = TRUE}
+# 
+# time serie with ggplot2
+##########################
+qplot(data=activity, 
+     x=interval,
+     y=steps,
+     geom="line") +
+  labs(title="Time serie of steps by interval of 5 min (Oct/1/2012 -Nov/30/2012)") +
+  labs(x="Interval of 5 min (Oct/1/2012 - Nov/30/2012)") +
+  labs(y="County steps by interval 5 min")
+
+```
+#
+## 4- Imputing missing values   
+```{r echo = TRUE}
+# 
+# total steps by day without NAs (using dplyr)
+tot.steps.day2 <- activity %>%                  # read activity,
+  group_by(date) %>%                            # group by date,
+  summarise(steps = sum(steps, na.rm=TRUE)) %>% # summarise steps (without NAs),
+  arrange(date)                                 # and order by date.
+
+# quartis of total steps by day (without NAs)
+summary(tot.steps.day2$steps)
+```
+
+
+#
+## 5- Are there differences in activity patterns between weekdays and weekends?   
+   
+Weekends: Sat, Sun.    
+Weekdays: Mon, Tues, Wed, Thurs, Fri.   
+```{r echo = TRUE}
+# 
+```
